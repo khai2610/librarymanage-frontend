@@ -1,52 +1,83 @@
 <template>
-  <div>
+  <div class="container mt-5">
+    <!-- Display Book Details -->
     <div v-if="book">
-      <h2>Book Details</h2>
-      <p><strong>Title:</strong> {{ book.TenSach }}</p>
-      <p><strong>Price:</strong> {{ book.DonGia }}</p>
-      <p><strong>Author:</strong> {{ book.NguonGoc }}</p>
-      <p><strong>Year:</strong> {{ book.NamXuatBan }}</p>
-      <p><strong>Quantity:</strong> {{ book.SoQuyen }}</p>
-      <p><strong>Publisher Code:</strong> {{ book.MaNXB }}</p>
-      <button @click="toggleEdit">Edit Book</button>
-      <button @click="deleteBook">Delete Book</button>
+      <!-- Book Details Header with Back Button -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Back Button -->
+        <button @click="goBack" class="btn btn-secondary">Back</button>
 
-      <!-- Form Edit Book -->
-      <form v-if="isEditing" @submit.prevent="updateBook">
+        <!-- Empty div to take space between back button and title -->
+        <div class="flex-grow-1"></div>
+
+        <!-- Book Title -->
+        <h2 class="text-center w-100">Book Details</h2>
+      </div>
+
+      <!-- Book Information -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Title:</strong> {{ book.TenSach }}</p>
+          <p><strong>Price:</strong> {{ book.DonGia | currency }}</p>
+          <p><strong>Author:</strong> {{ book.NguonGoc }}</p>
+          <p><strong>Year of Publication:</strong> {{ book.NamXuatBan }}</p>
+          <p><strong>Quantity:</strong> {{ book.SoQuyen }}</p>
+          <p><strong>Publisher Code:</strong> {{ book.MaNXB }}</p>
+        </div>
+        <div class="col-md-6">
+          <!-- Image or Extra Information (if any) -->
+          <img src="https://via.placeholder.com/250" alt="Book Image" class="img-fluid" />
+        </div>
+      </div>
+
+      <button @click="toggleEdit" class="btn btn-primary me-2">Edit Book</button>
+      <button @click="deleteBook" class="btn btn-danger">Delete Book</button>
+
+      <!-- Edit Form -->
+      <div v-if="isEditing" class="mt-4">
         <h3>Edit Book</h3>
-        <label>
-          Title:
-          <input v-model="formData.TenSach" type="text" required />
-        </label>
-        <label>
-          Price:
-          <input v-model="formData.DonGia" type="number" required />
-        </label>
-        <label>
-          Author:
-          <input v-model="formData.NguonGoc" type="text" required />
-        </label>
-        <label>
-          Year:
-          <input v-model="formData.NamXuatBan" type="number" required />
-        </label>
-        <label>
-          Quantity:
-          <input v-model="formData.SoQuyen" type="number" required />
-        </label>
-        <label>
-          Publisher Code:
-          <input v-model="formData.MaNXB" type="text" required />
-        </label>
-        <button type="submit">Save Changes</button>
-        <button @click="cancelEdit">Cancel</button>
-      </form>
+        <form @submit.prevent="updateBook">
+          <div class="mb-3">
+            <label for="TenSach" class="form-label">Title:</label>
+            <input v-model="formData.TenSach" id="TenSach" class="form-control" type="text" required />
+          </div>
+          <div class="mb-3">
+            <label for="DonGia" class="form-label">Price:</label>
+            <input v-model="formData.DonGia" id="DonGia" class="form-control" type="number" required />
+          </div>
+          <div class="mb-3">
+            <label for="NguonGoc" class="form-label">Author:</label>
+            <input v-model="formData.NguonGoc" id="NguonGoc" class="form-control" type="text" required />
+          </div>
+          <div class="mb-3">
+            <label for="NamXuatBan" class="form-label">Year:</label>
+            <input v-model="formData.NamXuatBan" id="NamXuatBan" class="form-control" type="number" required />
+          </div>
+          <div class="mb-3">
+            <label for="SoQuyen" class="form-label">Quantity:</label>
+            <input v-model="formData.SoQuyen" id="SoQuyen" class="form-control" type="number" required />
+          </div>
+          <div class="mb-3">
+            <label for="MaNXB" class="form-label">Publisher Code:</label>
+            <input v-model="formData.MaNXB" id="MaNXB" class="form-control" type="text" required />
+          </div>
+          <button type="submit" class="btn btn-success me-2">Save Changes</button>
+          <button @click="cancelEdit" class="btn btn-secondary">Cancel</button>
+        </form>
+      </div>
     </div>
+
+    <!-- Error Handling -->
     <div v-else-if="error">
-      <p>{{ error }}</p>
+      <p class="text-danger">{{ error }}</p>
     </div>
+
+    <!-- Loading Spinner -->
     <div v-else>
       <p>Loading book details...</p>
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
   </div>
 </template>
@@ -94,24 +125,20 @@ export default {
     };
 
     // Update book
-      const updateBook = async () => {
-          try {
-              // Lấy tất cả trường trừ `_id`
-              const { _id, ...updateData } = formData.value;
-
-              console.log("Sending data for update:", updateData); // Log dữ liệu gửi đi
-
-              await api.put(`/sach/${route.params.MaSach}`, updateData);
-
-              book.value = { ...formData.value }; // Cập nhật dữ liệu sau khi thành công
-              isEditing.value = false;
-              alert("Book updated successfully!");
-          } catch (err) {
-              console.error("Error updating book:", err.response?.data || err.message);
-              alert("Failed to update book.");
-          }
-      };
-
+    const updateBook = async () => {
+      try {
+        // Lấy tất cả trường trừ _id
+        const { _id, ...updateData } = formData.value;
+        console.log("Sending data for update:", updateData); // Log dữ liệu gửi đi
+        await api.put(`/sach/${route.params.MaSach}`, updateData);
+        book.value = { ...formData.value }; // Cập nhật dữ liệu sau khi thành công
+        isEditing.value = false;
+        alert("Book updated successfully!");
+      } catch (err) {
+        console.error("Error updating book:", err.response?.data || err.message);
+        alert("Failed to update book.");
+      }
+    };
 
     // Delete book
     const deleteBook = async () => {
@@ -125,6 +152,11 @@ export default {
       }
     };
 
+    // Go back to the previous page
+    const goBack = () => {
+      router.go(-1); // This will navigate back to the previous page
+    };
+
     onMounted(fetchBookDetails);
 
     return {
@@ -136,6 +168,7 @@ export default {
       cancelEdit,
       updateBook,
       deleteBook,
+      goBack,
     };
   },
 };
@@ -143,4 +176,21 @@ export default {
 
 <style scoped>
 /* Add your styles here */
+.d-flex {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
 </style>

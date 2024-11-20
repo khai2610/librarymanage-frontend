@@ -1,52 +1,79 @@
 <template>
-  <div>
+  <div class="container mt-5">
+    <!-- Display Publisher Details -->
     <div v-if="publisher">
-      <h2>Publisher Details</h2>
-      <p><strong>Publisher Name:</strong> {{ publisher.TenNXB }}</p>
-      <p><strong>Publisher Code:</strong> {{ publisher.MaNXB }}</p>
-      <p><strong>Address:</strong> {{ publisher.DiaChi }}</p>
-      
-      <!-- Chỉ hiển thị nút chỉnh sửa khi không phải chế độ chỉnh sửa -->
-      <button v-if="!isEditing" @click="toggleEdit">Edit Publisher</button>
-      
-      <!-- Chỉ hiển thị form chỉnh sửa khi ở chế độ chỉnh sửa -->
-      <form v-if="isEditing" @submit.prevent="updatePublisher">
-        <h3>Edit Publisher</h3>
-        <label>
-          Publisher Name:
-          <input v-model="formData.TenNXB" type="text" />
-        </label>
-        <label>
-          Publisher Code:
-          <input v-model="formData.MaNXB" type="text" />
-        </label>
-        <label>
-          Address:
-          <input v-model="formData.DiaChi" type="text" />
-        </label>
-        <button type="submit">Save Changes</button>
-        <button @click="cancelEdit">Cancel</button>
-      </form>
+      <!-- Publisher Details Header with Back Button -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Back Button -->
+        <button @click="goBack" class="btn btn-secondary">Back</button>
 
-      <!-- Xóa Nhà Xuất Bản -->
-      <button @click="deletePublisher">Delete Publisher</button>
+        <!-- Empty div to take space between back button and title -->
+        <div class="flex-grow-1"></div>
+
+        <!-- Publisher Title -->
+        <h2 class="text-center w-100">Publisher Details</h2>
+      </div>
+
+      <!-- Publisher Information -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Publisher Name:</strong> {{ publisher.TenNXB }}</p>
+          <p><strong>Publisher Code:</strong> {{ publisher.MaNXB }}</p>
+          <p><strong>Address:</strong> {{ publisher.DiaChi }}</p>
+        </div>
+        <div class="col-md-6">
+          <!-- Image or Extra Information (if any) -->
+          <img src="https://via.placeholder.com/250" alt="Publisher Image" class="img-fluid" />
+        </div>
+      </div>
+
+      <button @click="toggleEdit" class="btn btn-primary me-2">Edit Publisher</button>
+      <button @click="deletePublisher" class="btn btn-danger">Delete Publisher</button>
+
+      <!-- Edit Form -->
+      <div v-if="isEditing" class="mt-4">
+        <h3>Edit Publisher</h3>
+        <form @submit.prevent="updatePublisher">
+          <div class="mb-3">
+            <label for="TenNXB" class="form-label">Publisher Name:</label>
+            <input v-model="formData.TenNXB" id="TenNXB" class="form-control" type="text" required />
+          </div>
+          <div class="mb-3">
+            <label for="MaNXB" class="form-label">Publisher Code:</label>
+            <input v-model="formData.MaNXB" id="MaNXB" class="form-control" type="text" required />
+          </div>
+          <div class="mb-3">
+            <label for="DiaChi" class="form-label">Address:</label>
+            <input v-model="formData.DiaChi" id="DiaChi" class="form-control" type="text" required />
+          </div>
+          <button type="submit" class="btn btn-success me-2">Save Changes</button>
+          <button @click="cancelEdit" class="btn btn-secondary">Cancel</button>
+        </form>
+      </div>
     </div>
+
+    <!-- Error Handling -->
     <div v-else-if="error">
-      <p>{{ error }}</p>
+      <p class="text-danger">{{ error }}</p>
     </div>
+
+    <!-- Loading Spinner -->
     <div v-else>
       <p>Loading publisher details...</p>
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import api from '../services/api';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted } from "vue";
+import api from "../services/api";
+import { useRoute, useRouter } from "vue-router";
 
 export default {
-  name: 'PublisherDetails',
+  name: "PublisherDetails",
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -90,7 +117,7 @@ export default {
         isEditing.value = false;
         alert("Publisher updated successfully!");
       } catch (err) {
-          console.error('Error updating employee:', error.message);
+        console.error("Error updating publisher:", err.response?.data || err.message);
         alert("Failed to update publisher.");
       }
     };
@@ -100,11 +127,16 @@ export default {
       try {
         await api.delete(`/nhaxuatban/${route.params.MaNXB}`);
         alert("Publisher deleted successfully!");
-        router.push("/publishers"); // Redirect to publishers list
+        router.push("/publishers"); // Redirect to publisher list
       } catch (err) {
         console.error(err);
         alert("Failed to delete publisher.");
       }
+    };
+
+    // Go back to the previous page
+    const goBack = () => {
+      router.go(-1); // This will navigate back to the previous page
     };
 
     onMounted(fetchPublisherDetails);
@@ -118,11 +150,29 @@ export default {
       cancelEdit,
       updatePublisher,
       deletePublisher,
+      goBack,
     };
   },
 };
 </script>
 
 <style scoped>
-/* Add styles here */
+/* Add your styles here */
+.d-flex {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
 </style>
