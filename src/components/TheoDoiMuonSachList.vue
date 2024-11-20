@@ -1,41 +1,63 @@
 <template>
   <div>
     <h1>Book Loan Tracking List</h1>
-    <ul>
-      <li 
-        v-for="tracking in trackingList" 
-        :key="`${tracking.MaDocGia}, ${tracking.MaSach}`"
-      >
-        <!-- Link đến trang chi tiết với cả MaDocGia và MaSach -->
-        <router-link 
-          :to="`/trackingList/${tracking.MaDocGia}/${tracking.MaSach}`"
-        >
-          Reader: {{ tracking.MaDocGia }} | Book: {{ tracking.MaSach }}
-        </router-link>
-      </li>
-    </ul>
+    <!-- DataTable -->
+    <table id="tracking-list" class="display">
+      <thead>
+        <tr>
+          <th>Reader ID</th>
+          <th>Book ID</th>
+          <th>Loan Date</th>
+          <th>Return Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="tracking in trackingList" :key="`${tracking.MaDocGia}, ${tracking.MaSach}`">
+          <td>{{ tracking.MaDocGia }}</td>
+          <td>{{ tracking.MaSach }}</td>
+          <td>{{ tracking.NgayMuon }}</td>
+          <td>{{ tracking.NgayTra }}</td>
+          <td>
+            <!-- Link to the detail page -->
+            <router-link :to="`/trackingList/${tracking.MaDocGia}/${tracking.MaSach}`" class="btn btn-info btn-sm">
+              Details
+            </router-link>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue';
 import api from '../services/api';
+import "datatables.net-dt/css/dataTables.dataTables.min.css";
+import $ from 'jquery';
+import 'datatables.net';
 
 export default {
   name: 'TheoDoiMuonSachList',
   setup() {
     const trackingList = ref([]);
 
-    // Fetch danh sách theo dõi mượn sách
+    // Fetch tracking list from the API
     const fetchTrackingList = async () => {
       try {
         const response = await api.get('/theodoimuonsach');
         trackingList.value = response.data;
+
+        // Initialize DataTable after data is loaded
+        setTimeout(() => {
+          $('#tracking-list').DataTable();
+        }, 0);
       } catch (error) {
         console.error('Error fetching tracking list:', error);
       }
     };
 
+    // Fetch data when component is mounted
     onMounted(fetchTrackingList);
 
     return {
@@ -46,19 +68,13 @@ export default {
 </script>
 
 <style scoped>
-/* Add styles for styling the list */
-ul {
-  list-style: none;
-  padding: 0;
+/* Optional: Styling for DataTable if necessary */
+table.dataTable {
+  width: 100%;
+  border-collapse: collapse;
 }
-li {
-  margin: 10px 0;
-}
-router-link {
-  text-decoration: none;
-  color: blue;
-}
-router-link:hover {
-  text-decoration: underline;
+
+button {
+  margin-right: 10px;
 }
 </style>

@@ -1,43 +1,85 @@
 <template>
-  <div>
+  <div class="container mt-5">
+    <!-- Employee Details -->
     <div v-if="employee">
-      <h2>Employee Details</h2>
-      <p><strong>Name:</strong> {{ employee.hoTenNV }}</p>
-      <p><strong>Employee Code:</strong> {{ employee.msnv }}</p>
-      <p><strong>Position:</strong> {{ employee.chucVu }}</p>
-      <p><strong>Address:</strong> {{ employee.diaChi }}</p>
-      <p><strong>Phone Number:</strong> {{ employee.soDienThoai }}</p>
-      
-      <button v-if="!isEditing" @click="toggleEdit">Edit Employee</button>
-      
-      <form v-if="isEditing" @submit.prevent="updateEmployee">
-        <h3>Edit Employee</h3>
-        <label>Name: <input v-model="formData.hoTenNV" type="text" /></label>
-        <label>Position: <input v-model="formData.chucVu" type="text" /></label>
-        <label>Address: <input v-model="formData.diaChi" type="text" /></label>
-        <label>Phone Number: <input v-model="formData.soDienThoai" type="text" /></label>
-        <button type="submit">Save Changes</button>
-        <button @click="cancelEdit" type="button">Cancel</button>
-      </form>
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Back Button -->
+        <button @click="goBack" class="btn btn-secondary">Back</button>
 
-      <button @click="deleteEmployee">Delete Employee</button>
+        <!-- Empty div for alignment -->
+        <div class="flex-grow-1"></div>
+
+        <!-- Title -->
+        <h2 class="text-center w-100">Employee Details</h2>
+      </div>
+
+      <!-- Employee Information -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Name:</strong> {{ employee.hoTenNV }}</p>
+          <p><strong>Employee Code:</strong> {{ employee.msnv }}</p>
+          <p><strong>Position:</strong> {{ employee.chucVu }}</p>
+          <p><strong>Address:</strong> {{ employee.diaChi }}</p>
+          <p><strong>Phone Number:</strong> {{ employee.soDienThoai }}</p>
+        </div>
+        <div class="col-md-6">
+          <img src="https://via.placeholder.com/250" alt="Employee Image" class="img-fluid" />
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <button @click="toggleEdit" class="btn btn-primary me-2" v-if="!isEditing">Edit Employee</button>
+      <button @click="deleteEmployee" class="btn btn-danger">Delete Employee</button>
+
+      <!-- Edit Form -->
+      <div v-if="isEditing" class="mt-4">
+        <h3>Edit Employee</h3>
+        <form @submit.prevent="updateEmployee">
+          <div class="mb-3">
+            <label for="hoTenNV" class="form-label">Name:</label>
+            <input v-model="formData.hoTenNV" id="hoTenNV" class="form-control" type="text" required />
+          </div>
+          <div class="mb-3">
+            <label for="chucVu" class="form-label">Position:</label>
+            <input v-model="formData.chucVu" id="chucVu" class="form-control" type="text" required />
+          </div>
+          <div class="mb-3">
+            <label for="diaChi" class="form-label">Address:</label>
+            <input v-model="formData.diaChi" id="diaChi" class="form-control" type="text" required />
+          </div>
+          <div class="mb-3">
+            <label for="soDienThoai" class="form-label">Phone Number:</label>
+            <input v-model="formData.soDienThoai" id="soDienThoai" class="form-control" type="text" required />
+          </div>
+          <button type="submit" class="btn btn-success me-2">Save Changes</button>
+          <button @click="cancelEdit" type="button" class="btn btn-secondary">Cancel</button>
+        </form>
+      </div>
     </div>
+
+    <!-- Error Handling -->
     <div v-else-if="error">
-      <p>{{ error }}</p>
+      <p class="text-danger">{{ error }}</p>
     </div>
+
+    <!-- Loading Spinner -->
     <div v-else>
       <p>Loading employee details...</p>
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import api from '../services/api';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted } from "vue";
+import api from "../services/api";
+import { useRoute, useRouter } from "vue-router";
 
-    export default {
-  name: 'NhanVienDetail',
+export default {
+  name: "EmployeeDetails",
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -46,6 +88,7 @@ import { useRoute, useRouter } from 'vue-router';
     const isEditing = ref(false);
     const error = ref(null);
 
+    // Fetch Employee Details
     const fetchEmployeeDetails = async () => {
       try {
         const response = await api.get(`/nhanvien/${route.params.msnv}`);
@@ -61,37 +104,33 @@ import { useRoute, useRouter } from 'vue-router';
       }
     };
 
+    // Toggle Edit Mode
     const toggleEdit = () => {
-      isEditing.value = !isEditing.value;
+      isEditing.value = true;
     };
 
+    // Cancel Edit
     const cancelEdit = () => {
       isEditing.value = false;
       formData.value = { ...employee.value };
     };
 
- 
-      const updateEmployee = async () => {
-          try {
-              const { _id, ...updateFields } = formData.value; // Loại bỏ _id khỏi dữ liệu
-              const response = await api.put(`/nhanvien/${employee.value.msnv}`, updateFields);
+    // Update Employee
+    const updateEmployee = async () => {
+      try {
+        const { _id, ...updateFields } = formData.value;
+        const response = await api.put(`/nhanvien/${employee.value.msnv}`, updateFields);
+        alert(response.data.message || "Updated successfully!");
+        employee.value = response.data.data;
+        await fetchEmployeeDetails();
+        cancelEdit();
+      } catch (error) {
+        console.error("Error updating employee:", error.message);
+        alert("Failed to update employee.");
+      }
+    };
 
-              // Hiển thị thông báo cập nhật thành công
-              alert(response.data.message || 'Cập nhật thành công!');
-
-              // Cập nhật thông tin hiển thị sau khi cập nhật
-              employee.value = response.data.data;
-              await fetchEmployeeDetails();
-
-              cancelEdit();
-          } catch (error) {
-              console.error('Error updating employee:', error.message);
-              alert('Cập nhật thất bại!');
-          }
-      };
-
-
-
+    // Delete Employee
     const deleteEmployee = async () => {
       try {
         await api.delete(`/nhanvien/${route.params.msnv}`);
@@ -101,6 +140,11 @@ import { useRoute, useRouter } from 'vue-router';
         console.error(err);
         alert("Failed to delete employee.");
       }
+    };
+
+    // Go Back to Previous Page
+    const goBack = () => {
+      router.go(-1);
     };
 
     onMounted(fetchEmployeeDetails);
@@ -114,11 +158,28 @@ import { useRoute, useRouter } from 'vue-router';
       cancelEdit,
       updateEmployee,
       deleteEmployee,
+      goBack,
     };
   },
 };
 </script>
 
 <style scoped>
-/* Add styles here */
+.d-flex {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
 </style>
